@@ -53,7 +53,7 @@ class Const {
     /**
      * The application version
      */
-    static public final String APP_VER = "22.04.3"
+    static public final String APP_VER = "22.04.3-PYTHON-BUILD"
 
     /**
      * The app build time as linux/unix timestamp
@@ -63,7 +63,7 @@ class Const {
     /**
      * The app build number
      */
-    static public final int APP_BUILDNUM = 5703
+    static public final int APP_BUILDNUM = 0
 
     /**
      * The app build time string relative to UTC timezone
