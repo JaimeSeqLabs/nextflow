@@ -97,6 +97,7 @@ class Launcher {
                 new CmdLs(),
                 new CmdPull(),
                 new CmdRun(),
+                new CmdPyRunBasic(),
                 new CmdKubeRun(),
                 new CmdDrop(),
                 new CmdConfig(),
