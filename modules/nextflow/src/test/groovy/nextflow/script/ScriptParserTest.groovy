@@ -37,6 +37,31 @@ class ScriptParserTest extends Specification {
         !session.binding.hasVariable('bar')
     }
 
+    def 'should extract an AST from a file script' () {
+
+        given:
+        def session = new Session()
+        def parser = new ScriptParser(session)
+        def binding = new ScriptBinding(params:[foo:'Hello'])
+
+        def file = TestHelper.createInMemTempFile('foo.nf')
+        file.text = '''
+        bar = "$params.foo world!"
+        '''
+
+        when: 'extracting an AST'
+        parser.setBinding(binding)
+        def AST = parser.getAst(file)
+
+        then: 'the parser retains base configuration'
+        parser.script == null
+        parser.result == null
+        parser.binding.getScriptPath() == file
+        parser.binding.getSession() == session
+        !session.binding.hasVariable('bar')
+        AST != null
+    }
+
     def 'should run a text script' () {
 
         given:

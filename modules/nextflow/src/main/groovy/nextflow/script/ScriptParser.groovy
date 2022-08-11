@@ -17,15 +17,13 @@
 
 package nextflow.script
 
-import java.nio.file.Path
-
 import com.google.common.hash.Hashing
 import groovy.transform.CompileStatic
 import nextflow.Channel
 import nextflow.Nextflow
-import nextflow.NextflowMeta
 import nextflow.Session
 import nextflow.ast.NextflowDSL
+import nextflow.ast.NextflowDSLAstExtractor
 import nextflow.ast.NextflowXform
 import nextflow.ast.OpXform
 import nextflow.exception.ScriptCompilationException
@@ -35,10 +33,14 @@ import nextflow.io.ValueObject
 import nextflow.util.Duration
 import nextflow.util.MemoryUnit
 import org.apache.commons.lang.StringUtils
+import org.codehaus.groovy.ast.ModuleNode
 import org.codehaus.groovy.control.CompilationFailedException
 import org.codehaus.groovy.control.CompilerConfiguration
 import org.codehaus.groovy.control.customizers.ASTTransformationCustomizer
 import org.codehaus.groovy.control.customizers.ImportCustomizer
+
+import java.nio.file.Path
+
 /**
  * Parse a nextflow script class applied the required AST transformations
  *
@@ -184,6 +186,35 @@ class ScriptParser {
         }
     }
 
+    ModuleNode getAst(Path scriptPath) {
+        this.scriptPath = scriptPath
+        return getAst(scriptPath.text)
+    }
+
+    ModuleNode getAst(String scriptText) {
+        if( !binding && session )
+            binding = session.binding
+        if( !binding )
+            throw new IllegalArgumentException("Missing Script binding object")
+
+        setupContext()
+
+        def exporter = new NextflowDSLAstExtractor()
+
+        def cfg = new CompilerConfiguration(getConfig())
+        cfg.addCompilationCustomizers( new ASTTransformationCustomizer(exporter) )
+
+        def shell = new GroovyShell(classLoader, binding, cfg)
+
+        // this triggers exporter AST transformation
+        shell.parse(scriptText, computeClassName(scriptText))
+
+        /*final meta = ScriptMeta.get(bs)
+        meta.setScriptPath(scriptPath)
+        meta.setModule(module)*/
+
+        return exporter.AST
+    }
 
     ScriptParser parse(String scriptText) {
         def interpreter = getInterpreter()
