@@ -44,7 +44,7 @@ class NextflowMeta {
         boolean recursion
 
         void setDsl( float num ) {
-            if( num != 2 && num != 1 )
+            if( num != 2 && num != 1 && num != 3)
                 throw new IllegalArgumentException("Not a valid DSL version number: $num")
             if( num == 2 && !ignoreWarnDsl2 )
                 log.warn1 "DSL 2 PREVIEW MODE IS DEPRECATED - USE THE STABLE VERSION INSTEAD -- Read more at https://www.nextflow.io/docs/latest/dsl2.html#dsl2-migration-notes"
@@ -92,6 +92,8 @@ class NextflowMeta {
         final result = new LinkedHashMap()
         if( isDsl2() )
             result.dsl = 2i
+        if( isDsl3() )
+            result.dsl = 3i // python
         if( isStrictModeEnabled() )
             result.strict = true
         return result
@@ -105,7 +107,7 @@ class NextflowMeta {
         if( isDsl2Final() ) {
             result.enable = featuresMap()
         }
-        else if( isDsl2() ) {
+        else if( isDsl2() || isDsl3() ) {
             result.preview = featuresMap()
         }
         return result
@@ -144,11 +146,37 @@ class NextflowMeta {
         enable.dsl = 1f
     }
 
+    /**
+     * Determine if the workflow script uses DSL3 (python) mode
+     *
+     * {@code true} when the workflow script uses DSL3 syntax, {@code false} otherwise.
+     */
+    boolean isDsl3() {
+        enable.dsl == 3f
+    }
+
+    void enableDsl3() {
+        this.enable.dsl = 3f
+    }
+
+    void disableDsl3() {
+        enable.dsl = 2f
+    }
+
     void enableDsl(String value) {
-        if( value !in ['1','2'] ) {
-            throw new AbortOperationException("Invalid Nextflow DSL value: $value")
+        switch (value) {
+            case '1':
+                this.enable.dsl = 1f
+                break
+            case '2':
+                this.enable.dsl = 2f
+                break
+            case '3':
+                this.enable.dsl = 3f
+                break
+            default:
+                throw new AbortOperationException("Invalid Nextflow DSL value: $value")
         }
-        this.enable.dsl = value=='1' ? 1f : 2f
     }
 
     boolean isStrictModeEnabled() {
